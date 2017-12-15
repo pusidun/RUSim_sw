@@ -8,11 +8,11 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
-//delay ms microseconds
-void delay_us(u32 ms)
+//delay usŒ¢√Î
+void delay_us(u32 us)
 {
 	int i, j;
-	for (i = 0; i < time; i++)
+	for (i = 0; i < us; i++)
 		for (j = 0; j < 10; j++)//20:2us 1:100ns
 			;
 }

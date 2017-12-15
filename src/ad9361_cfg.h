@@ -15,7 +15,6 @@
 
 /************************** Constant Definitions *****************************/
 
-#define PAYLOAD_SIZE 300
 #define AD9362_WRITE 0x1c
 #define AD9362_READ 0x20
 #define SPI_FPGA_CORE_WR 0x28
@@ -25,25 +24,34 @@
 #define Read_Data(BaseAddr, LocalAddr)           (*(volatile u32 *)(BaseAddr + LocalAddr))
 #define BaseAddr  0x44a20000
 
+static u32 chipSelect = 0x1;//GSM :0x1 LTE:0x2
+
 /************************** Function Prototypes ******************************/
+int ConfigAD9361LTE();
+
+int ConfigAD9361GSM();
+
+void SPIRead_HLevel(u16 addr);
+
+/*
+ * Index:      Command
+
+    1)      	WAIT_CALDONE	    BBPLL,2000	// Wait for BBPLL to lock, Timeout 2sec, Max BBPLL VCO Cal Time: 225.000 us (Done when 0x05E[7]==1)
+	2)			WAIT_CALDONE	RXCP,100	// Wait for CP cal to complete, Max RXCP Cal time: 600.000 (us)(Done when 0x244[7]==1)
+	3)			WAIT_CALDONE	TXCP,100	// Wait for CP cal to complete, Max TXCP Cal time: 600.000 (us)(Done when 0x284[7]==1)
+	4)			WAIT_CALDONE	RXFILTER,2000	// Wait for RX filter to tune, Max Cal Time: 5.585 us (Done when 0x016[7]==0)
+	5)			WAIT_CALDONE	TXFILTER,2000	// Wait for TX filter to tune, Max Cal Time: 2.889 us (Done when 0x016[6]==0)
+	6)			WAIT_CALDONE	BBDC,2000	// BBDC Max Cal Time: 6575.521 us. Cal done when 0x016[0]==0
+	7)			WAIT_CALDONE	RFDC,2000	// Wait for cal to complete (Done when 0x016[1]==0)
+	8)			WAIT_CALDONE	TXQUAD,2000	// Wait for cal to complete (Done when 0x016[4]==0)
+ */
+void WAIT_CALDONE(u16 index);
 
 u8 SPIRead(u16 addr);
 
 void SPIWrite(u16 addr, u8 val);
 
 int spi_reg_verity(u32 addr, u32 val);
-
-int spi_fpga_core_w(u32 addr, u32 val);
-
-int spi_fpga_core_r(u32 addr);
-
-//read&write enable; 1:enable, 0:disable
-int spi_rw_enable(u8 f);
-
-//0x1 GSM , 0x2 LTE
-int spi_ad_select(u32 chip);
-
-void roc_script();
 
 void delay_ad9362(u32 time);
 
