@@ -24,9 +24,15 @@
 #define Read_Data(BaseAddr, LocalAddr)           (*(volatile u32 *)(BaseAddr + LocalAddr))
 #define BaseAddr  0x44a20000
 
+#define DELAY_TRY_COUNT 10
 static u32 chipSelect = 0x1;//GSM :0x1 LTE:0x2
+static u32 configStatus = XST_SUCCESS;
 
 /************************** Function Prototypes ******************************/
+void writeScriptEeprom();
+
+void readScriptEeprom();
+
 int ConfigAD9361LTE();
 
 int ConfigAD9361GSM();

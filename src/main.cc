@@ -8,16 +8,29 @@
 #include "xparameters.h"
 #include "tempsensor.h"
 #include "unistd.h"
+#include "eeprom.h"
+
 
 int main()
 {
 	int Status = 0;
-	//config lmk04808
+
+	/*config lmk04808*/
 	Status = init_lmk04808();
 
-	Status = ConfigAD9361LTE();
+	/*
+	 * Config ROC straightly, however, block RAM will be overflowed.
+	 * So we abolish this way and using EEPROM.
+	 * We remain these code just for debug.
+	 */
+	//Status = ConfigAD9361LTE();
+	//Status = ConfigAD9361GSM();
 
-	Status = ConfigAD9361GSM();
+	/*write ROC config data to EEPROM*/
+	//writeScriptEeprom();
+
+	/*Config ROC through reading EEPROM*/
+	readScriptEeprom();
 
 	if (Status != XST_SUCCESS) {
 		return XST_FAILURE;

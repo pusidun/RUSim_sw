@@ -1,16 +1,13 @@
 #usr/bin/env python3
 
+#This file aims to write GSM Script data to eeprom.
+#Address Range:0x16c4~0x3984
+
 import os
 
+BaseAddr = 0x16c4
+
 def parse(parsefile,outfile):
-    '''
-		parse four command from txt file. 
-		Including:
-			SPIRead
-			SPIWrite
-			WAIT_CALDONE
-			WAIT		
-	'''
     with open(parsefile) as fin, open(outfile,'w') as fout:
         for line in fin.readlines():
             if "SPIWrite" in line:
@@ -25,22 +22,21 @@ def parse(parsefile,outfile):
                 WAIT(fout, line)
                 pass
 
-
 def SPIWrite(fout,line):
-'''
-	Example:SPIWrite(0x3DF,0x01);
-'''
+    global BaseAddr
     addr,val = line.split()[1].split(',')
-    code = 'SPIWrite' + '(0x' + addr + ',0x' + val + ');\n'
+    #code = 'SPIWrite' + '(0x' + addr + ',0x' + val + ');\n'
+    code = 'eeWrAD(' + hex(BaseAddr) + ', 0xA, 0x' + val + ', 0x' + addr + ');\n'
     fout.writelines(code)
+    BaseAddr = BaseAddr + 0x4
     
 def SPIRead(fout, line):
-'''
-	Example:SPIRead_HLevel(0x05E);
-'''
+    global BaseAddr
     addr = line.split()[1]
-    code = "SPIRead_HLevel(0x" + addr + ");\n"
+    #code = "SPIRead_HLevel(0x" + addr + ");\n"
+    code = 'eeWrAD(' + str(hex(BaseAddr)) + ', 0xB, 0, 0x' + addr + ');\n'
     fout.writelines(code)
+    BaseAddr = BaseAddr + 0x4
 
 def WAIT_CALDONE(fout, line):
     '''
@@ -74,28 +70,23 @@ def WAIT_CALDONE(fout, line):
 	    index = '7'
     elif cmd == 'TXQUAD':
 	    index = '8'
-
+    global BaseAddr
     if index >= '1' and index <= '8':
-        code = "WAIT_CALDONE(" + index + ");\n" + "//" + line
+        #code = "WAIT_CALDONE(" + index + ");\n" + "//" + line
+        code = 'eeWrAD('+str(hex(BaseAddr))+', 0xD, '+ str(index) + ',0);\n'
         fout.writelines(code)
     else:
         fout.writelines('\n**********************************\n Errors! Parse WAIT_CALDONE() fail, please upgrade your code\n**********************************\n')
+    BaseAddr = BaseAddr + 0x4
 
 def WAIT(fout, line):
-'''
-	Example:delay_ad9362(20000);
-'''
+    global BaseAddr
     time = line.split()[1]
-    code = 'delay_ad9362(' + time + '000);\n'
+    #code = 'delay_ad9362(' + time + '000);\n'
+    code = 'eeWrAD('+str(hex(BaseAddr))+',0xC,'+str(time)+',0);\n'
     fout.writelines(code)
+    BaseAddr = BaseAddr + 0x4
 
  
 if __name__ == '__main__':
-    path = "./"
-    files = os.listdir(path)
-    s = []
-    for file in files:
-        if not os.path.isdir(file) and file!='parse.py' and file.split('Covert_')[0]!='':
-            infile = path + file
-            outfile = path + 'Covert_' + file
-            parse(infile, outfile)
+   parse("GSM_AD80305.txt","GSM_eeprom_WR.txt")
