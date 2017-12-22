@@ -19,6 +19,11 @@ int main()
 	Status = init_lmk04808();
 
 	/*
+	 * read temperature from LM75
+	 */
+	float tmp=getLM75();
+
+	/*
 	 * Config ROC straightly, however, block RAM will be overflowed.
 	 * So we abolish this way and using EEPROM.
 	 * We remain these code just for debug.
@@ -26,8 +31,11 @@ int main()
 	//Status = ConfigAD9361LTE();
 	//Status = ConfigAD9361GSM();
 
-	/*write ROC config data to EEPROM*/
-	//writeScriptEeprom();
+	/*
+	 * write ROC config data to EEPROM
+	 *should be comment when run
+	 */
+	//Status=writeScriptEeprom();
 
 	/*Config ROC through reading EEPROM*/
 	readScriptEeprom();

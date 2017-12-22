@@ -27,7 +27,7 @@ def SPIWrite(fout,line):
     global BaseAddr
     addr,val = line.split()[1].split(',')
     #code = 'SPIWrite' + '(0x' + addr + ',0x' + val + ');\n'
-    code = 'eeWrAD(' + hex(BaseAddr) + ', 0xA, 0x' + val + ', 0x' + addr + ');\n'
+    code = 'Status=eeWrAD(' + hex(BaseAddr) + ', 0xA, 0x' + val + ', 0x' + addr + ');\n'
     fout.writelines(code)
     BaseAddr = BaseAddr + 0x4
     
@@ -35,7 +35,7 @@ def SPIRead(fout, line):
     global BaseAddr
     addr = line.split()[1]
     #code = "SPIRead_HLevel(0x" + addr + ");\n"
-    code = 'eeWrAD(' + str(hex(BaseAddr)) + ', 0xB, 0, 0x' + addr + ');\n'
+    code = 'Status=eeWrAD(' + str(hex(BaseAddr)) + ', 0xB, 0, 0x' + addr + ');\n'
     fout.writelines(code)
     BaseAddr = BaseAddr + 0x4
 
@@ -74,7 +74,7 @@ def WAIT_CALDONE(fout, line):
     global BaseAddr
     if index >= '1' and index <= '8':
         #code = "WAIT_CALDONE(" + index + ");\n" + "//" + line
-        code = 'eeWrAD('+str(hex(BaseAddr))+', 0xD, '+ str(index) + ',0);\n'
+        code = 'Status=eeWrAD('+str(hex(BaseAddr))+', 0xD, '+ str(index) + ',0);\n'
         fout.writelines(code)
     else:
         fout.writelines('\n**********************************\n Errors! Parse WAIT_CALDONE() fail, please upgrade your code\n**********************************\n')
@@ -84,7 +84,7 @@ def WAIT(fout, line):
     global BaseAddr
     time = line.split()[1]
     #code = 'delay_ad9362(' + time + '000);\n'
-    code = 'eeWrAD('+str(hex(BaseAddr))+',0xC,'+str(time)+',0);\n'
+    code = 'Status=eeWrAD('+str(hex(BaseAddr))+',0xC,'+str(time)+',0);\n'
     fout.writelines(code)
     BaseAddr = BaseAddr + 0x4
 

@@ -24,12 +24,13 @@
 #define Read_Data(BaseAddr, LocalAddr)           (*(volatile u32 *)(BaseAddr + LocalAddr))
 #define BaseAddr  0x44a20000
 
-#define DELAY_TRY_COUNT 10
+#define DELAY_TRY_COUNT 5
 static u32 chipSelect = 0x1;//GSM :0x1 LTE:0x2
 static u32 configStatus = XST_SUCCESS;
+static u32 waitcalStatus = XST_FAILURE;
 
 /************************** Function Prototypes ******************************/
-void writeScriptEeprom();
+int writeScriptEeprom();
 
 void readScriptEeprom();
 
@@ -51,7 +52,7 @@ void SPIRead_HLevel(u16 addr);
 	7)			WAIT_CALDONE	RFDC,2000	// Wait for cal to complete (Done when 0x016[1]==0)
 	8)			WAIT_CALDONE	TXQUAD,2000	// Wait for cal to complete (Done when 0x016[4]==0)
  */
-void WAIT_CALDONE(u16 index);
+int WAIT_CALDONE(u16 index);
 
 u8 SPIRead(u16 addr);
 

@@ -133,45 +133,55 @@ void SPIRead_HLevel(u16 addr) {
 	}
 }
 
-void WAIT_CALDONE(u16 index) {
+int WAIT_CALDONE(u16 index) {
 	if (index == 1) {
 		// WAIT_CALDONE	BBPLL,2000
 		// Wait for BBPLL to lock, Timeout 2sec, Max BBPLL VCO Cal Time: 225.000 us (Done when 0x05E[7]==1)
 		for (int i = 0; i < DELAY_TRY_COUNT; i++) {
-			u32 reg = SPIRead(0x05E);
+			u32 reg = SPIRead(0x05E);//0x80
 			u8 checkbit = reg & (0x1 << 7);
-			if (checkbit == (0x1 << 7))
-				return;
-			else
+			if (checkbit == (0x1 << 7)) {
+				waitcalStatus = XST_SUCCESS;
+				return waitcalStatus;
+			}
+			else{
+				waitcalStatus = XST_FAILURE;
 				delay_ad9362(2000000 / DELAY_TRY_COUNT);
+			}
 		}
 		printf("WAIT_CALDONE	BBPLL,2000 fail.");
 		configStatus = XST_FAILURE;
-	} else if (index == 2)		//fail 40 8`b0010 1000
-			{
+	} else if (index == 2){		//fail 40 8`b0010 1000
 		//WAIT_CALDONE	RXCP,100
 		// Wait for CP cal to complete, Max RXCP Cal time: 600.000 (us)(Done when 0x244[7]==1)
 		for (int i = 0; i < DELAY_TRY_COUNT; i++) {
-			u32 reg = SPIRead(0x244);
+			u32 reg = SPIRead(0x244);//0xa9
 			u8 checkbit = reg & (0x1 << 7);
-			if (checkbit == (0x1 << 7))
-				return;
-			else
-				delay_ad9362(100000 / DELAY_TRY_COUNT);
+			if (checkbit == (0x1 << 7)) {
+				waitcalStatus = XST_SUCCESS;
+				return waitcalStatus;
+			}
+			else{
+				waitcalStatus = XST_FAILURE;
+				delay_ad9362(2000000 / DELAY_TRY_COUNT);
+			}
 		}
 		printf("WAIT_CALDONE	RXCP,100 fail.");
 		configStatus = XST_FAILURE;
-	} else if (index == 3)		//fail  40 104 8`b0110 1000
-			{
+	} else if (index == 3){		//fail  40 104 8`b0110 1000
 		//WAIT_CALDONE	TXCP,100
 		// Wait for CP cal to complete, Max TXCP Cal time: 600.000 (us)(Done when 0x284[7]==1)
 		for (int i = 0; i < DELAY_TRY_COUNT; i++) {
-			u32 reg = SPIRead(0x284);
+			u32 reg = SPIRead(0x284);//0xa7 0xa8
 			u8 checkbit = reg & (0x1 << 7);
-			if (checkbit == (0x1 << 7))
-				return;
-			else
-				delay_ad9362(100000 / DELAY_TRY_COUNT);
+			if (checkbit == (0x1 << 7)) {
+				waitcalStatus = XST_SUCCESS;
+				return waitcalStatus;
+			}
+			else{
+				waitcalStatus = XST_FAILURE;
+				delay_ad9362(2000000 / DELAY_TRY_COUNT);
+			}
 		}
 		printf("WAIT_CALDONE	TXCP,100 fail.");
 		//configStatus = XST_FAILURE;
@@ -179,12 +189,16 @@ void WAIT_CALDONE(u16 index) {
 		//WAIT_CALDONE	RXFILTER,2000
 		// Wait for RX filter to tune, Max Cal Time: 5.585 us (Done when 0x016[7]==0)
 		for (int i = 0; i < DELAY_TRY_COUNT; i++) {
-			u32 reg = SPIRead(0x016);
+			u32 reg = SPIRead(0x016);//0x0
 			u8 checkbit = reg & (0x1 << 7);
-			if (checkbit == 0)
-				return;
-			else
+			if (checkbit == 0) {
+				waitcalStatus = XST_SUCCESS;
+				return waitcalStatus;
+			}
+			else{
+				waitcalStatus = XST_FAILURE;
 				delay_ad9362(2000000 / DELAY_TRY_COUNT);
+			}
 		}
 		printf("WAIT_CALDONE	RXFILTER,2000 fail.");
 		configStatus = XST_FAILURE;
@@ -192,12 +206,16 @@ void WAIT_CALDONE(u16 index) {
 		//WAIT_CALDONE	TXFILTER,2000
 		// Wait for TX filter to tune, Max Cal Time: 2.889 us (Done when 0x016[6]==0)
 		for (int i = 0; i < DELAY_TRY_COUNT; i++) {
-			u32 reg = SPIRead(0x016);
+			u32 reg = SPIRead(0x016);//0x0
 			u8 checkbit = reg & (0x1 << 6);
-			if (checkbit == 0)
-				return;
-			else
+			if (checkbit == 0) {
+				waitcalStatus = XST_SUCCESS;
+				return waitcalStatus;
+			}
+			else{
+				waitcalStatus = XST_FAILURE;
 				delay_ad9362(2000000 / DELAY_TRY_COUNT);
+			}
 		}
 		printf("WAIT_CALDONE	TXFILTER,2000 fail.");
 		configStatus = XST_FAILURE;
@@ -205,26 +223,33 @@ void WAIT_CALDONE(u16 index) {
 		//WAIT_CALDONE	BBDC,2000
 		// BBDC Max Cal Time: 6575.521 us. Cal done when 0x016[0]==0
 		for (int i = 0; i < DELAY_TRY_COUNT; i++) {
-			u32 reg = SPIRead(0x016);
+			u32 reg = SPIRead(0x016);//0x0
 			u8 checkbit = reg & (0x1 << 0);
-			if (checkbit == 0)
-				return;
-			else
+			if (checkbit == 0) {
+				waitcalStatus = XST_SUCCESS;
+				return waitcalStatus;
+			}
+			else{
+				waitcalStatus = XST_FAILURE;
 				delay_ad9362(2000000 / DELAY_TRY_COUNT);
+			}
 		}
 		printf("WAIT_CALDONE	BBDC,2000 fail.");
 		configStatus = XST_FAILURE;
-	} else if (index == 7)		//fail 2
-			{
+	} else if (index == 7){		//fail 2
 		//WAIT_CALDONE	RFDC,2000
 		// Wait for cal to complete (Done when 0x016[1]==0)
 		for (int i = 0; i < DELAY_TRY_COUNT; i++) {
-			u32 reg = SPIRead(0x016);
+			u32 reg = SPIRead(0x016);//0x0
 			u8 checkbit = reg & (0x1 << 1);
-			if (checkbit == 0)
-				return;
-			else
+			if (checkbit == 0) {
+				waitcalStatus = XST_SUCCESS;
+				return waitcalStatus;
+			}
+			else{
+				waitcalStatus = XST_FAILURE;
 				delay_ad9362(2000000 / DELAY_TRY_COUNT);
+			}
 		}
 		printf("WAIT_CALDONE	RFDC,2000 fail.");
 		//configStatus = XST_FAILURE;
@@ -232,12 +257,16 @@ void WAIT_CALDONE(u16 index) {
 		//WAIT_CALDONE	TXQUAD,2000
 		// Wait for cal to complete (Done when 0x016[4]==0)
 		for (int i = 0; i < DELAY_TRY_COUNT; i++) {
-			u32 reg = SPIRead(0x016);
+			u32 reg = SPIRead(0x016);//0x0
 			u8 checkbit = reg & (0x1 << 4);
-			if (checkbit == 0)
-				return;
-			else
+			if (checkbit == 0) {
+				waitcalStatus = XST_SUCCESS;
+				return waitcalStatus;
+			}
+			else {
+				waitcalStatus = XST_FAILURE;
 				delay_ad9362(2000000 / DELAY_TRY_COUNT);
+			}
 		}
 		printf("WAIT_CALDONE	TXFILTER,2000 fail.");
 		configStatus = XST_FAILURE;
@@ -246,13 +275,19 @@ void WAIT_CALDONE(u16 index) {
 	}
 }
 
-void writeScriptEeprom() {
+int writeScriptEeprom() {
+	int Status = 1;
 	Write_Data(BaseAddr, I2CSelect, M24512);
 
 	//insert LTE_eeprom_WR.txt and GSM_eeprom_WR.txt below
 
+
+
+
+
 	//:end
 
+	return Status;
 }
 
 void readScriptEeprom() {

@@ -26,6 +26,7 @@ typedef u16 AddressType;
 
 int eeRdAD(u16 eepromAddr);
 int eeWrAD(u16 eepromAddr, u8 type, u8 value, u16 addr);
+float getLM75();
 unsigned EepromWriteByte(AddressType Address, u8 *BufferPtr, u16 ByteCount);
 unsigned EepromReadByte(AddressType Address, u8 *BufferPtr, u16 ByteCount);
 

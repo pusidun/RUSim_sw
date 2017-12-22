@@ -27,6 +27,7 @@ int eeRdAD(u16 eepromAddr)
 	EepromIicAddr = EEPROM_ADDRESS;
 	unsigned BytesRead = EepromReadByte(eepromAddr, ReadBuffer, PAGE_SIZE);
 	u8 type = ReadBuffer[0];
+	int Status=0;
 	if(type == 0xA)
 	{
 		u8 val = ReadBuffer[1];
@@ -52,8 +53,11 @@ int eeRdAD(u16 eepromAddr)
 	{
 		u8 timetype;
 		timetype = ReadBuffer[1];
-		WAIT_CALDONE(timetype);
+		Status = WAIT_CALDONE(timetype);
+		if(Status == XST_FAILURE)
+			return XST_FAILURE;
 	}
+	return XST_SUCCESS;
 }
 
 /*
@@ -87,15 +91,48 @@ int eeWrAD(u16 eepromAddr, u8 type, u8 value, u16 addr)
 		WriteBuffer[3] = 0x0;
 	}
 	unsigned bytesWrite = EepromWriteByte(eepromAddr, WriteBuffer, PAGE_SIZE);
-	/*unsigned BytesRead = EepromReadByte(eepromAddr, ReadBuffer, PAGE_SIZE);
+	unsigned BytesRead = EepromReadByte(eepromAddr, ReadBuffer, PAGE_SIZE);
 	for (int Index = 0; Index < 4; Index++) {
 		if (ReadBuffer[Index] != WriteBuffer[Index]) {
 			return XST_FAILURE;
 		}
 	}
-	return XST_SUCCESS;*/
+	return XST_SUCCESS;
 }
 
+float getLM75() {
+	u8 TemperaturePtr[3] = { 0x00 };
+	float ActualTemperature;
+	int Status, ByteCount;
+	volatile unsigned ReceByteCount;
+
+	Write_Data(BaseAddr, I2CSelect, LM75);//select I2C,default Select=0
+	do {
+		Status = XIic_ReadReg(IIC_BASE_ADDRESS, XIIC_SR_REG_OFFSET);
+		if (!(Status & XIIC_SR_BUS_BUSY_MASK)) {
+			ReceByteCount = XIic_Send( IIC_BASE_ADDRESS,
+			TEMP_SENSOR_ONCHIP_ADDRESS, WriteLMBuffer, 1, XIIC_STOP);
+			if (ReceByteCount != 1) {
+				// Send is aborted so reset Tx FIFO
+				XIic_WriteReg(IIC_BASE_ADDRESS, XIIC_CR_REG_OFFSET,
+						XIIC_CR_TX_FIFO_RESET_MASK);
+				XIic_WriteReg(IIC_BASE_ADDRESS, XIIC_CR_REG_OFFSET,
+						XIIC_CR_ENABLE_DEVICE_MASK);
+			}
+		}
+	} while (ReceByteCount != 1);
+
+	ByteCount = XIic_Recv( IIC_BASE_ADDRESS, TEMP_SENSOR_ONCHIP_ADDRESS,
+			TemperaturePtr, 2,
+			XIIC_STOP);
+
+	TemperaturePtr[0] = TemperaturePtr[0] << 1;
+	TemperaturePtr[1] = TemperaturePtr[1] >> 7;
+	TemperaturePtr[2] = TemperaturePtr[0] + TemperaturePtr[1];
+	ActualTemperature = TemperaturePtr[2] * 0.5;
+
+	return ActualTemperature;
+}
 
 /*****************************************************************************
  * @param	Address contains the address in the EEPROM to write to.
