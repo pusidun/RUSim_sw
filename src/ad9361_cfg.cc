@@ -91,6 +91,8 @@ void SPIWrite(u16 addr, u8 val) {
 			Write_Data(BaseAddr, 0x002c, 0x0);
 		}
 	}
+	//delay 1ms
+	delay_ad9362(2000);
 }
 
 /*

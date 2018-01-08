@@ -4,20 +4,33 @@
 
 #include "lmk04808.h"
 #include "ad9361_cfg.h"
-#include "stdio.h"
 #include "xparameters.h"
 #include "tempsensor.h"
-#include "unistd.h"
 #include "eeprom.h"
 
 
 int main()
 {
 	int Status = 0;
+	u8 tmp2;
+	/*tmp2 = SPIRead(0x247);
+	tmp2 = SPIRead(0x5e);
+	SPIWrite(0x3f4, 0xb3);
+	tmp2 = SPIRead(0x3f4);
+	SPIWrite(0x73, 0x20);
+	SPIWrite(0x75, 0x20);
+
+	tmp2 = SPIRead(0x247);
+	tmp2 = SPIRead(0x287);
+	tmp2 = SPIRead(0x5e);
+	tmp2 = SPIRead(0xa);*/
+
+	/*SPIWrite(0x73, 0x0);
+	tmp2 = SPIRead(0x73);*/
 
 	/*config lmk04808*/
 	Status = init_lmk04808();
-
+	u32 version = Read_Data(BaseAddr, 0x0);
 	/*
 	 * read temperature from LM75
 	 */
@@ -39,6 +52,12 @@ int main()
 
 	/*Config ROC through reading EEPROM*/
 	readScriptEeprom();
+
+
+
+	tmp2 = SPIRead(0x73);
+
+	//
 
 	if (Status != XST_SUCCESS) {
 		return XST_FAILURE;

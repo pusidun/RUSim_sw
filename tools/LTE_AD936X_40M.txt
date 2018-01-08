@@ -1480,15 +1480,18 @@ SPIWrite	0CA,26	// Disable Tx Filter Tuner (Both Channels)
 // *CONFIG_RXTIA
 // RX TIA Setup:  Setup values scale based on RxBBF calibration
 // results.  See information in Calibration Guide. 
-//************************************************************
+//************************************************************
+
+//20171228
+
 SPIRead	1EB	// Read RXBBF C3(MSB)
 SPIRead	1EC	// Read RXBBF C3(LSB)
 SPIRead	1E6	// Read RXBBF R2346
 SPIWrite	1DB,20	// Set TIA selcc[2:0]
 SPIWrite	1DD,00	// Set RX TIA1 C MSB[6:0]
 SPIWrite	1DF,00	// Set RX TIA2 C MSB[6:0]
-SPIWrite	1DC,47	// Set RX TIA1 C LSB[5:0]
-SPIWrite	1DE,47	// Set RX TIA2 C LSB[5:0]
+SPIWrite	1DC,47	// Set RX TIA1 C LSB[5:0] 4d
+SPIWrite	1DE,47	// Set RX TIA2 C LSB[5:0] 4d
 
 //************************************************************
 // *CONFIG_TXSECFILTER
@@ -1517,23 +1520,23 @@ SPIWrite	203,24
 SPIWrite	204,24
 SPIWrite	205,00
 SPIWrite	206,00
-SPIWrite	207,6B
-SPIWrite	208,30
-SPIWrite	209,34
-SPIWrite	20A,41
-SPIWrite	20B,1E
-SPIWrite	20C,43
-SPIWrite	20D,1C
+SPIWrite	207,6B  //7c
+SPIWrite	208,30  //26
+SPIWrite	209,34  //3e
+SPIWrite	20A,41  //4e
+SPIWrite	20B,1E  //1a
+SPIWrite	20C,43  //51
+SPIWrite	20D,1C	//17
 SPIWrite	20E,00
-SPIWrite	20F,6E
-SPIWrite	210,6E
-SPIWrite	211,6E
-SPIWrite	212,3F
-SPIWrite	213,3F
-SPIWrite	214,3F
-SPIWrite	215,41
-SPIWrite	216,41
-SPIWrite	217,41
+SPIWrite	20F,6E  //7f
+SPIWrite	210,6E	//7f
+SPIWrite	211,6E  //7f
+SPIWrite	212,3F  //4c
+SPIWrite	213,3F  //4c
+SPIWrite	214,3F  //4c
+SPIWrite	215,41  //4e
+SPIWrite	216,41  //4e
+SPIWrite	217,41  //4e
 SPIWrite	218,2E
 SPIWrite	219,B0
 SPIWrite	21A,31

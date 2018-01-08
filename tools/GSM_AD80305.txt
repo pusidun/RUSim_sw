@@ -2248,7 +2248,11 @@ SPIWrite	0CA,26	// Disable Tx Filter Tuner (Both Channels)
 // *CONFIG_RXTIA
 // RX TIA Setup:  Setup values scale based on RxBBF calibration
 // results.  See information in Calibration Guide. 
-//************************************************************
+//************************************************************
+
+
+//20171228
+
 SPIRead	1EB	// Read RXBBF C3(MSB)
 SPIRead	1EC	// Read RXBBF C3(LSB)
 SPIRead	1E6	// Read RXBBF R2346
@@ -2277,7 +2281,9 @@ SPIWrite	0D0,56	// Pdampbias
 SPIRead	1EB	// Read RxBBF C3 MSB after calibration
 SPIRead	1EC	// Read RxBBF C3 LSB after calibration
 SPIRead	1E6	// Read RxBBF R3 after calibration
-
+
+//20171228
+
 SPIWrite	200,00
 SPIWrite	201,00
 SPIWrite	202,00
