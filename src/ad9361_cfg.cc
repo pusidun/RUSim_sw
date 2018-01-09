@@ -7,6 +7,7 @@
 
 #include "ad9361_cfg.h"
 #include "eeprom.h"
+#include "math.h"
 
 u8 SPIRead(u16 addr) {
 	u32 spiVal = 0x00;
@@ -182,11 +183,11 @@ void SPIRead_HLevel(u16 addr) {
 			// written to AD9362 registers
 			if(chipSelect == 0x2)//lte
 			{
-				eeWrAD(0x1518, 0xA, reg1DB, 0x1DB);
-				eeWrAD(0x151c, 0xA, reg1DD, 0x1DD);
-				eeWrAD(0x1520, 0xA, reg1DF, 0x1DF);
-				eeWrAD(0x1524, 0xA, reg1DC, 0x1DC);
-				eeWrAD(0x1528, 0xA, reg1DE, 0x1DE);
+				eeWrAD(0x1518, 0xA, reg1DB, 0x1DB);//0x20
+				eeWrAD(0x151c, 0xA, reg1DD, 0x1DD);//0
+				eeWrAD(0x1520, 0xA, reg1DF, 0x1DF);//0
+				eeWrAD(0x1524, 0xA, reg1DC, 0x1DC);//0x46
+				eeWrAD(0x1528, 0xA, reg1DE, 0x1DE);//0x46
 			}
 			else if(chipSelect == 0x1)//gsm
 			{
@@ -200,15 +201,230 @@ void SPIRead_HLevel(u16 addr) {
 		else if(RXTIA_ADC == 1)//CONFIG_ADC
 		{
 			RXTIA_ADC =0;
+			double tmpBBBW_MHz = 0;
+			if(chipSelect == 0x2)//lte
+			{
+				tmpBBBW_MHz = 40;
+			}
+			else if(chipSelect == 0x1)//gsm
+			{
+				tmpBBBW_MHz = 20;
+			}
+
+			//calculation
+			double scale_snr_dB = (FsADC < 80 ? 0 : 2);
+			u8 rxbbf_c3_msb = reg1EB, rxbbf_c3_lsb = reg1EC, rxbbf_r2346 = reg1E6;
+			double d1 = (1.4 * 2 * 3.14);
+			double d2 = (18300 * rxbbf_r2346);
+			double d3 = 160e-15 * rxbbf_c3_msb + 10e-15 * rxbbf_c3_lsb + 140e-15;
+			double d4 = tmpBBBW_MHz * 1.0e6;
+			double d5 = 1.0;
+			if( tmpBBBW_MHz > 18.0 )
+			{
+				d5 = 1.0 + 0.01 * (tmpBBBW_MHz - 18.0);
+			}
+			double rc_timeConst = 1.0 / ( d1 * d2 * d3 * d4 * d5 );
+
+			double scale_res = sqrt( 1 / rc_timeConst);
+			double scale_cap = scale_res;
+			double scale_snr = pow(10, scale_snr_dB * 0.1 );
+			double maxsnr = 640.0 / 160;
+
+			u8 reg207,reg208,reg209,reg20a,reg20b,reg20c,reg20d,reg20e;
+			u8 reg20f,reg210,reg211,reg212,reg213,reg214,reg215,reg216,reg217;
+			u8 reg218,reg219,reg21a,reg21b,reg21c,reg21d,reg21e,reg21f,reg220,reg221,reg222;
+
+			// calculate the value of 0x207
+			double regVal = 0.0;
+			double minVal = sqrt( maxsnr * FsADC / 640 );
+			minVal = minVal < 1.0 ? minVal : 1.0;
+			regVal = floor(-0.5 + 80 * scale_snr * scale_res * minVal);
+			regVal = regVal < 124.0 ? regVal : 124.0;
+			reg207 = regVal;
+
+			// calculate the value of 0x208
+			regVal = floor( 0.5 + (20 * 640 / FsADC) * (reg207 / 80) / (scale_res * scale_cap) );
+			regVal = regVal < 255.0 ? regVal : 255.0;
+			reg208 = regVal;
+
+			// calculate the value of 0x20A
+			regVal = floor(-0.5 + 77 * scale_res * minVal);
+			regVal = regVal < 127.0 ? regVal : 127.0;
+			reg20a = regVal;
+
+			// calculate the value of 0x209
+			regVal = floor( 0.8 * reg20a);
+			regVal = regVal < 127.0 ? regVal : 127.0;
+			reg209 = regVal;
+
+
+			// calculate the value of 0x20B
+			regVal = floor( 0.5 + 20 * (640 / FsADC) );
+			regVal = regVal < 255.0 ? regVal : 255.0;
+			reg20b = regVal;
+
+			// calculate the value of 0x20C
+			regVal = floor( -0.5 + 80 * scale_res * minVal );
+			regVal = regVal < 127.0 ? regVal : 127.0;
+			reg20c = regVal;
+
+			// calculate the value of 0x20D
+			regVal = floor( -1.5 + 20 * (640 / FsADC) * (regVal / 80) / (scale_res * scale_cap) );
+			regVal = regVal < 255.0 ? regVal : 255.0;
+			reg20d = regVal;
+
+			// calculate the value of 0x20E
+			regVal = 21 * floor( 0.1 * 640 / FsADC );
+			reg20e = regVal;
+
+			// calculate the value of 0x20F
+			regVal = (u8)(1.025 * reg207);
+			regVal = regVal < 127.0 ? regVal : 127.0;
+			reg20f = regVal;
+
+			// calculate the value of 0x210
+			double maxVal = (640 / FsADC) / maxsnr;
+			maxVal = maxVal < 1.0 ? 1.0 : maxVal;
+			regVal = floor( reg20f * (0.98 + 0.02 * maxVal) );
+			regVal = regVal < 127.0 ? regVal : 127.0;
+			reg210 = regVal;
+
+			// calculate the value of 0x211
+			reg211 = reg20f;
+
+			// calculate the value of 0x212
+			regVal = (u8)( 0.975 * reg20a );
+			regVal = regVal < 127.0 ? regVal : 127.0;
+			reg212 = regVal;
+
+			// calculate the value of 0x213
+			regVal = floor( reg212  * (0.98 + 0.02 * maxVal) );
+			regVal = regVal < 127.0 ? regVal : 127.0;
+			reg213 = regVal;
+
+			// calculate the value of 0x214
+			reg214 = reg212;
+
+			// calculate the value of 0x215
+			regVal = (u8)(0.975 * reg20c );
+			reg215 = regVal < 127.0 ? regVal : 127.0;
+
+			// calculate the value of 0x216
+			regVal = floor( reg215  * (0.98 + 0.02 * maxVal) );
+			reg216 = regVal < 127.0 ? regVal : 127.0;
+
+			// calculate the value of 0x217
+			reg217 = reg216;
+
+			// calculate the value of 0x218
+			reg218 = 0x2E;
+
+			// calculate the value of 0x219
+			minVal = 63 * (FsADC / 640 );
+			minVal = minVal < 63 ? minVal : 63;
+			regVal = floor(128 + minVal);
+			reg219 = regVal;
+
+			// calculate the value of 0x21A
+			regVal = floor(0 + minVal * (0.92 + 0.08 * (640 / FsADC)));
+			reg21a = regVal;
+
+			// calculate the value of 0x21B
+			minVal = 32 * sqrt( FsADC / 640 );
+			minVal = minVal < 63 ? minVal : 63;
+			regVal = floor(0 + minVal);
+			reg21b = regVal;
+
+			// calculate the value of 0x21C
+			reg21c =reg219;
+
+			// calculate the value of 0x21D
+			reg21d =reg21a;
+
+			// calculate the value of 0x21E
+			reg21e = reg21b;
+
+			// calculate the value of 0x21F
+			reg21f = reg219;
+
+			// calculate the value of 0x220
+			reg220 = reg21a;
+
+			// calculate the value of 0x221
+			minVal = 63 * sqrt( FsADC / 640 );
+			minVal = minVal < 63 ? minVal : 63;
+			regVal = floor( 0 + minVal );
+			reg221 = regVal;
+
+			// calculate the value of 0x222
+			regVal = floor( 64 * sqrt( FsADC / 640) );
+			regVal = regVal < 127.0 ? regVal : 127.0;
+			reg222 = regVal;
 
 
 			if(chipSelect == 0x2)//lte
 			{
-				//eeWrAD(0x1518, 0xA, reg1DB, 0x1DB);
+				int Status;
+				Status=eeWrAD(0x1560, 0xA, reg207, 0x207);
+				Status=eeWrAD(0x1564, 0xA, reg208, 0x208);
+				Status=eeWrAD(0x1568, 0xA, reg209, 0x209);
+				Status=eeWrAD(0x156c, 0xA, reg20a, 0x20A);
+				Status=eeWrAD(0x1570, 0xA, reg20b, 0x20B);
+				Status=eeWrAD(0x1574, 0xA, reg20c, 0x20C);
+				Status=eeWrAD(0x1578, 0xA, reg20d, 0x20D);//0xf
+				Status=eeWrAD(0x157c, 0xA, reg20e, 0x20E);//0
+				Status=eeWrAD(0x1580, 0xA, reg20f, 0x20F);//0x7f
+				Status=eeWrAD(0x1584, 0xA, reg210, 0x210);
+				Status=eeWrAD(0x1588, 0xA, reg211, 0x211);
+				Status=eeWrAD(0x158c, 0xA, reg212, 0x212);
+				Status=eeWrAD(0x1590, 0xA, reg213, 0x213);
+				Status=eeWrAD(0x1594, 0xA, reg214, 0x214);
+				Status=eeWrAD(0x1598, 0xA, reg215, 0x215);//0x78
+				Status=eeWrAD(0x159c, 0xA, reg216, 0x216);//0x78
+				Status=eeWrAD(0x15a0, 0xA, reg217, 0x217);//0x78
+				Status=eeWrAD(0x15a4, 0xA, reg218, 0x218);
+				Status=eeWrAD(0x15a8, 0xA, reg219, 0x219);
+				Status=eeWrAD(0x15ac, 0xA, reg21a, 0x21A);
+				Status=eeWrAD(0x15b0, 0xA, reg21b, 0x21B);
+				Status=eeWrAD(0x15b4, 0xA, reg21c, 0x21C);
+				Status=eeWrAD(0x15b8, 0xA, reg21d, 0x21D);
+				Status=eeWrAD(0x15bc, 0xA, reg21e, 0x21E);
+				Status=eeWrAD(0x15c0, 0xA, reg21f, 0x21F);
+				Status=eeWrAD(0x15c4, 0xA, reg220, 0x220);//0x31
+				Status=eeWrAD(0x15c8, 0xA, reg221, 0x221);
+				Status=eeWrAD(0x15cc, 0xA, reg222, 0x222);
 			}
 			else if(chipSelect == 0x1)//gsm
 			{
-				//eeWrAD(0x37dc, 0xA, reg1DB, 0x1DB);
+				int Status;
+				Status=eeWrAD(0x3824, 0xA, reg207, 0x207);
+				Status=eeWrAD(0x3828, 0xA, reg208, 0x208);
+				Status=eeWrAD(0x382c, 0xA, reg209, 0x209);
+				Status=eeWrAD(0x3830, 0xA, reg20a, 0x20A);
+				Status=eeWrAD(0x3834, 0xA, reg20b, 0x20B);
+				Status=eeWrAD(0x3838, 0xA, reg20c, 0x20C);
+				Status=eeWrAD(0x383c, 0xA, reg20d, 0x20D);
+				Status=eeWrAD(0x3840, 0xA, reg20e, 0x20E);
+				Status=eeWrAD(0x3844, 0xA, reg20f, 0x20F);
+				Status=eeWrAD(0x3848, 0xA, reg210, 0x210);
+				Status=eeWrAD(0x384c, 0xA, reg211, 0x211);
+				Status=eeWrAD(0x3850, 0xA, reg212, 0x212);
+				Status=eeWrAD(0x3854, 0xA, reg213, 0x213);
+				Status=eeWrAD(0x3858, 0xA, reg214, 0x214);
+				Status=eeWrAD(0x385c, 0xA, reg215, 0x215);
+				Status=eeWrAD(0x3860, 0xA, reg216, 0x216);
+				Status=eeWrAD(0x3864, 0xA, reg217, 0x217);
+				Status=eeWrAD(0x3868, 0xA, reg218, 0x218);
+				Status=eeWrAD(0x386c, 0xA, reg219, 0x219);
+				Status=eeWrAD(0x3870, 0xA, reg21a, 0x21A);
+				Status=eeWrAD(0x3874, 0xA, reg21b, 0x21B);
+				Status=eeWrAD(0x3878, 0xA, reg21c, 0x21C);
+				Status=eeWrAD(0x387c, 0xA, reg21d, 0x21D);
+				Status=eeWrAD(0x3880, 0xA, reg21e, 0x21E);
+				Status=eeWrAD(0x3884, 0xA, reg21f, 0x21F);
+				Status=eeWrAD(0x3888, 0xA, reg220, 0x220);
+				Status=eeWrAD(0x388c, 0xA, reg221, 0x221);
+				Status=eeWrAD(0x3890, 0xA, reg222, 0x222);
 			}
 		}
 

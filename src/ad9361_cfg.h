@@ -25,6 +25,7 @@
 #define BaseAddr  0x44a20000
 
 #define DELAY_TRY_COUNT 5
+#define FsADC 491.520
 static u32 chipSelect = 0x1;//GSM :0x1 LTE:0x2
 static u32 configStatus = XST_SUCCESS;
 static u32 waitcalStatus = XST_FAILURE;
