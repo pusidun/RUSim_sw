@@ -28,6 +28,7 @@
 static u32 chipSelect = 0x1;//GSM :0x1 LTE:0x2
 static u32 configStatus = XST_SUCCESS;
 static u32 waitcalStatus = XST_FAILURE;
+static u8 RXTIA_ADC = 0;//0:CONFIG_RXTIA  1:CONFIG_ADC
 
 /************************** Function Prototypes ******************************/
 int writeScriptEeprom();
@@ -61,5 +62,7 @@ void SPIWrite(u16 addr, u8 val);
 int spi_reg_verity(u32 addr, u32 val);
 
 void delay_ad9362(u32 time);
+
+void reset_ad9362();
 
 #endif /* AD9361_CFG_H_ */

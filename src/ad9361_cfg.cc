@@ -6,8 +6,6 @@
  */
 
 #include "ad9361_cfg.h"
-#include "string.h"
-#include "stdio.h"
 #include "eeprom.h"
 
 u8 SPIRead(u16 addr) {
@@ -118,20 +116,102 @@ void SPIRead_HLevel(u16 addr) {
 		// Check BBPLL locked status  (0x05E[7]==1 is locked)
 		regVal = SPIRead(addr);
 		regVal = regVal >> 0x7;
-		if ((regVal & 0x1) != 0x1)
-			printf("BBPLL is not locked\n");
+		if ((regVal & 0x1) != 0x1);
+			//printf("BBPLL is not locked\n");
 	} else if (addr == 0x247) {
 		// Check RX RF PLL lock status (0x247[1]==1 is locked)
 		regVal = SPIRead(addr);
-		if ((regVal & 0x1) != 0x1)
-			printf("RX RF PLL is not locked\n");
+		if ((regVal & 0x1) != 0x1);
+			//printf("RX RF PLL is not locked\n");
 	} else if (addr == 0x287) {
 		// Check TX RF PLL lock status (0x287[1]==1 is locked)
 		regVal = SPIRead(addr);
-		if ((regVal & 0x1) != 1)
-			printf("Tx RF PLL is not locked\n");
-	} else {
-		//do nothing
+		if ((regVal & 0x1) != 1);
+			//printf("Tx RF PLL is not locked\n");
+	} else if(addr == 0x1e6){
+		u8 reg1EB=0, reg1EC=0, reg1E6=0;
+		reg1EB = SPIRead(0x1EB);
+		reg1EC = SPIRead(0x1EC);
+		reg1E6 = SPIRead(0x1E6);
+		if(RXTIA_ADC == 0)//CONFIG_RXTIA
+		{
+			RXTIA_ADC = 1;
+
+			// calculation
+			u16 Cbbf = (reg1EB * 160)  + (reg1EC * 10) + 140;
+			u16 R2346 = 18300 * (reg1E6 & 0x7);
+			double CTIA_fF = (Cbbf * R2346 * 0.56) / 3500;
+			u16 tmpBBBW_MHz = 20;
+
+			u8 reg1DB=0;
+			u16 U16_BW_MHz = (tmpBBBW_MHz);
+			if( U16_BW_MHz <= 3 )
+			{
+				reg1DB = 0xE0;
+			}
+			else if( U16_BW_MHz > 3 && U16_BW_MHz <= 10 )
+			{
+			   reg1DB = 0x60;
+			}
+			else
+			{
+			   reg1DB = 0x20;
+			}
+
+			u8 temp = 0;
+			u8 reg1DC = 0, reg1DE = 0, reg1DD = 0, reg1DF = 0;
+			if( CTIA_fF > 2920.0 )
+			{
+				reg1DC = 0x40;
+				reg1DE = 0x40;
+				temp = (u8)(CTIA_fF - 400) / 320 ;
+				temp = temp < 127 ? temp : 127;
+				reg1DD = temp;
+				reg1DF = temp;
+			}
+			else
+			{
+				temp = (u8) (CTIA_fF - 400) / 40  + 0x40;
+				reg1DC = temp;
+				reg1DE = temp;
+				reg1DD = 0;
+				reg1DF = 0;
+			}
+
+			// Update data of corresponding registers and they will be
+			// written to AD9362 registers
+			if(chipSelect == 0x2)//lte
+			{
+				eeWrAD(0x1518, 0xA, reg1DB, 0x1DB);
+				eeWrAD(0x151c, 0xA, reg1DD, 0x1DD);
+				eeWrAD(0x1520, 0xA, reg1DF, 0x1DF);
+				eeWrAD(0x1524, 0xA, reg1DC, 0x1DC);
+				eeWrAD(0x1528, 0xA, reg1DE, 0x1DE);
+			}
+			else if(chipSelect == 0x1)//gsm
+			{
+				eeWrAD(0x37dc, 0xA, reg1DB, 0x1DB);
+				eeWrAD(0x37e0, 0xA, reg1DD, 0x1DD);
+				eeWrAD(0x37e4, 0xA, reg1DF, 0x1DF);
+				eeWrAD(0x37e8, 0xA, reg1DC, 0x1DC);
+				eeWrAD(0x37ec, 0xA, reg1DE, 0x1DE);
+			}
+		}
+		else if(RXTIA_ADC == 1)//CONFIG_ADC
+		{
+			RXTIA_ADC =0;
+
+
+			if(chipSelect == 0x2)//lte
+			{
+				//eeWrAD(0x1518, 0xA, reg1DB, 0x1DB);
+			}
+			else if(chipSelect == 0x1)//gsm
+			{
+				//eeWrAD(0x37dc, 0xA, reg1DB, 0x1DB);
+			}
+		}
+
 	}
 }
 
@@ -151,7 +231,7 @@ int WAIT_CALDONE(u16 index) {
 				delay_ad9362(2000000 / DELAY_TRY_COUNT);
 			}
 		}
-		printf("WAIT_CALDONE	BBPLL,2000 fail.");
+		//printf("WAIT_CALDONE	BBPLL,2000 fail.");
 		configStatus = XST_FAILURE;
 	} else if (index == 2){		//fail 40 8`b0010 1000
 		//WAIT_CALDONE	RXCP,100
@@ -168,7 +248,7 @@ int WAIT_CALDONE(u16 index) {
 				delay_ad9362(2000000 / DELAY_TRY_COUNT);
 			}
 		}
-		printf("WAIT_CALDONE	RXCP,100 fail.");
+		//printf("WAIT_CALDONE	RXCP,100 fail.");
 		configStatus = XST_FAILURE;
 	} else if (index == 3){		//fail  40 104 8`b0110 1000
 		//WAIT_CALDONE	TXCP,100
@@ -185,7 +265,7 @@ int WAIT_CALDONE(u16 index) {
 				delay_ad9362(2000000 / DELAY_TRY_COUNT);
 			}
 		}
-		printf("WAIT_CALDONE	TXCP,100 fail.");
+		//printf("WAIT_CALDONE	TXCP,100 fail.");
 		//configStatus = XST_FAILURE;
 	} else if (index == 4) {
 		//WAIT_CALDONE	RXFILTER,2000
@@ -202,7 +282,7 @@ int WAIT_CALDONE(u16 index) {
 				delay_ad9362(2000000 / DELAY_TRY_COUNT);
 			}
 		}
-		printf("WAIT_CALDONE	RXFILTER,2000 fail.");
+		//printf("WAIT_CALDONE	RXFILTER,2000 fail.");
 		configStatus = XST_FAILURE;
 	} else if (index == 5) {
 		//WAIT_CALDONE	TXFILTER,2000
@@ -219,7 +299,7 @@ int WAIT_CALDONE(u16 index) {
 				delay_ad9362(2000000 / DELAY_TRY_COUNT);
 			}
 		}
-		printf("WAIT_CALDONE	TXFILTER,2000 fail.");
+		//printf("WAIT_CALDONE	TXFILTER,2000 fail.");
 		configStatus = XST_FAILURE;
 	} else if (index == 6) {
 		//WAIT_CALDONE	BBDC,2000
@@ -236,7 +316,7 @@ int WAIT_CALDONE(u16 index) {
 				delay_ad9362(2000000 / DELAY_TRY_COUNT);
 			}
 		}
-		printf("WAIT_CALDONE	BBDC,2000 fail.");
+		//printf("WAIT_CALDONE	BBDC,2000 fail.");
 		configStatus = XST_FAILURE;
 	} else if (index == 7){		//fail 2
 		//WAIT_CALDONE	RFDC,2000
@@ -253,7 +333,7 @@ int WAIT_CALDONE(u16 index) {
 				delay_ad9362(2000000 / DELAY_TRY_COUNT);
 			}
 		}
-		printf("WAIT_CALDONE	RFDC,2000 fail.");
+		//printf("WAIT_CALDONE	RFDC,2000 fail.");
 		//configStatus = XST_FAILURE;
 	} else if (index == 8) {
 		//WAIT_CALDONE	TXQUAD,2000
@@ -270,10 +350,10 @@ int WAIT_CALDONE(u16 index) {
 				delay_ad9362(2000000 / DELAY_TRY_COUNT);
 			}
 		}
-		printf("WAIT_CALDONE	TXFILTER,2000 fail.");
+		//printf("WAIT_CALDONE	TXFILTER,2000 fail.");
 		configStatus = XST_FAILURE;
 	} else {
-		printf("for extention");
+		//printf("for extention");
 	}
 }
 
@@ -282,9 +362,6 @@ int writeScriptEeprom() {
 	Write_Data(BaseAddr, I2CSelect, M24512);
 
 	//insert LTE_eeprom_WR.txt and GSM_eeprom_WR.txt below
-
-
-
 
 
 	//:end
@@ -298,6 +375,9 @@ void readScriptEeprom() {
 
 	//³õÊ¼»¯FPGA SPI¿ØÖÆÆ÷£¬ Write 0x0024  0x0
 	Write_Data(BaseAddr, 0x0024, 0xc);
+	//reset ad9362
+	reset_ad9362();
+
 	for (int i = 0x00; i <= 0x16c0; i += 0x4) {
 		eeRdAD(i);
 	}
@@ -306,6 +386,12 @@ void readScriptEeprom() {
 	for (int i = 0x16c4; i <= 0x3984; i += 0x4) {
 		eeRdAD(i);
 	}
+}
+
+void reset_ad9362()
+{
+	Write_Data(BaseAddr, 0x34, 0x0);
+	Write_Data(BaseAddr, 0x34, 0x3);
 }
 /*
  int ConfigAD9361LTE() {

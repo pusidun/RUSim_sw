@@ -24,8 +24,13 @@ typedef u16 AddressType;
 #define M24512                       0X01
 #define I2CSelect                    0x30
 
+
+//eeprom read ad9362 scripts
 int eeRdAD(u16 eepromAddr);
+
+//eeprom write ad9362 scripts
 int eeWrAD(u16 eepromAddr, u8 type, u8 value, u16 addr);
+
 float getLM75();
 unsigned EepromWriteByte(AddressType Address, u8 *BufferPtr, u16 ByteCount);
 unsigned EepromReadByte(AddressType Address, u8 *BufferPtr, u16 ByteCount);

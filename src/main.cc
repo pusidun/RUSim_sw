@@ -8,25 +8,23 @@
 #include "tempsensor.h"
 #include "eeprom.h"
 
-
 int main()
 {
 	int Status = 0;
 	u8 tmp2;
-	/*tmp2 = SPIRead(0x247);
-	tmp2 = SPIRead(0x5e);
+	chipSelect=0x2;
+	/*tmp2 =Read_Data(BaseAddr, 0x34) ;
+	Write_Data(BaseAddr, 0x34, 0x0);
+	tmp2 =Read_Data(BaseAddr, 0x34) ;
+	Write_Data(BaseAddr, 0x34, 0x3);
+	tmp2 =Read_Data(BaseAddr, 0x34) ;*/
+	tmp2 = SPIRead(0x3f4);
 	SPIWrite(0x3f4, 0xb3);
 	tmp2 = SPIRead(0x3f4);
-	SPIWrite(0x73, 0x20);
-	SPIWrite(0x75, 0x20);
-
-	tmp2 = SPIRead(0x247);
-	tmp2 = SPIRead(0x287);
-	tmp2 = SPIRead(0x5e);
-	tmp2 = SPIRead(0xa);*/
-
-	/*SPIWrite(0x73, 0x0);
-	tmp2 = SPIRead(0x73);*/
+	SPIWrite(0x73, 0x40);
+	SPIWrite(0x75, 0x40);
+	tmp2 = SPIRead(0x73);
+	tmp2 = SPIRead(0x75);
 
 	/*config lmk04808*/
 	Status = init_lmk04808();
@@ -53,11 +51,7 @@ int main()
 	/*Config ROC through reading EEPROM*/
 	readScriptEeprom();
 
-
-
 	tmp2 = SPIRead(0x73);
-
-	//
 
 	if (Status != XST_SUCCESS) {
 		return XST_FAILURE;
