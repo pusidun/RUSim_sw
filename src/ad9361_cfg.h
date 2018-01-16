@@ -26,10 +26,7 @@
 
 #define DELAY_TRY_COUNT 5
 #define FsADC 491.520
-static u32 chipSelect = 0x1;//GSM :0x1 LTE:0x2
-static u32 configStatus = XST_SUCCESS;
-static u32 waitcalStatus = XST_FAILURE;
-static u8 RXTIA_ADC = 0;//0:CONFIG_RXTIA  1:CONFIG_ADC
+extern u32 chipSelect ;
 
 /************************** Function Prototypes ******************************/
 int writeScriptEeprom();
