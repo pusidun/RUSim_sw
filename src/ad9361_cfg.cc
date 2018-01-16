@@ -136,7 +136,7 @@ void SPIRead_HLevel(u16 addr) {
 	}
 	else if(addr == 0x1e6)
 	{
-		/*u8 reg1EB=0, reg1EC=0, reg1E6=0;
+		u8 reg1EB=0, reg1EC=0, reg1E6=0;
 		reg1EB = SPIRead(0x1EB);
 		reg1EC = SPIRead(0x1EC);
 		reg1E6 = SPIRead(0x1E6);
@@ -433,7 +433,7 @@ void SPIRead_HLevel(u16 addr) {
 				Status=eeWrAD(0x3890, 0xA, reg222, 0x222);
 			}
 		}
-*/
+
 	}
 }
 
@@ -592,24 +592,25 @@ int writeScriptEeprom() {
 }
 
 void readScriptEeprom() {
+	//reset ad9362
+	reset_ad9362();
+
+	chipSelect = 0x01;
+
 	Write_Data(BaseAddr, I2CSelect, M24512);
-	chipSelect = 0x02;
 
 	//³õÊ¼»¯FPGA SPI¿ØÖÆÆ÷£¬ Write 0x0024  0x0
 	Write_Data(BaseAddr, 0x0024, 0xc);
 
-	//reset ad9362
-	reset_ad9362();
-
 	for (int i = 0x00; i <= 0x16c0; i += 0x4) {
 		eeRdAD(i);
 	}
-/*
-	chipSelect = 0x01;
+
+	chipSelect = 0x02;
 	for (int i = 0x16c4; i <= 0x3984; i += 0x4) {
 		eeRdAD(i);
 	}
-	*/
+
 }
 
 void reset_ad9362()
