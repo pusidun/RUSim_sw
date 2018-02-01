@@ -1,12 +1,10 @@
-/*
- * Empty C++ Application
- */
-
-#include "lmk04808.h"
 #include "ad9361_cfg.h"
 #include "xparameters.h"
 #include "tempsensor.h"
 #include "eeprom.h"
+#include "uart.h"
+#include "lmk04808.h"
+#include "common.h"
 
 
 int main()
@@ -20,7 +18,9 @@ int main()
 	/*
 	 * read temperature from LM75
 	 */
-	float tmp=getLM75();
+	//float tmp=getLM75();
+
+	UartInterruptInit();
 
 	/*
 	 * Config ROC straightly, however, block RAM will be overflowed.
@@ -40,17 +40,5 @@ int main()
 	/*Config ROC(ad9363) through reading EEPROM*/
 	readScriptEeprom();
 
-	chipSelect = 0x01;
-	SPIWrite(0x3f4, 0xb3);
-	SPIWrite(0x73, 0x40);
-	SPIWrite(0x75, 0x40);
-	chipSelect = 0x02;
-	SPIWrite(0x3f4, 0xb3);
-	SPIWrite(0x73, 0x40);
-	SPIWrite(0x75, 0x40);
-
-	if (Status != XST_SUCCESS) {
-		return XST_FAILURE;
-	}
-	return XST_SUCCESS;
+	while(1);
 }

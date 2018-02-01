@@ -15,13 +15,11 @@
 #define Read_Data(BaseAddr, LocalAddr)           (*(volatile u32 *)(BaseAddr + LocalAddr))
 #define BaseAddr  0x44a20000
 
-void delay(int time) {
-	int i, j;
-	for (i = 0; i < time; i++)
-		for (j = 0; j < 20; j++)
-			;
-}
+/*Function Prototype*/
+void delay(int time);
+int init_lmk04808();
 
+/*Instance*/
 int init_lmk04808() {
 	u32 ReadBuffer[2];
 	u32 WriteBuffer[27] = { //RU2.0 -cpri rate3
@@ -50,4 +48,10 @@ int init_lmk04808() {
 	return XST_SUCCESS;
 }
 
+void delay(int time) {
+	int i, j;
+	for (i = 0; i < time; i++)
+		for (j = 0; j < 20; j++)
+			;
+}
 #endif /* LMK04808_H_ */

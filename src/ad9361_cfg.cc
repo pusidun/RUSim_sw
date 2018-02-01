@@ -187,7 +187,7 @@ void SPIRead_HLevel(u16 addr) {
 
 			// Update data of corresponding registers and they will be
 			// written to AD9362 registers
-			if(chipSelect == 0x2)//lte
+			if(chipSelect == 0x1)//lte
 			{
 				eeWrAD(0x1518, 0xA, reg1DB, 0x1DB);//0x20
 				eeWrAD(0x151c, 0xA, reg1DD, 0x1DD);//0
@@ -195,7 +195,7 @@ void SPIRead_HLevel(u16 addr) {
 				eeWrAD(0x1524, 0xA, reg1DC, 0x1DC);//0x46
 				eeWrAD(0x1528, 0xA, reg1DE, 0x1DE);//0x46
 			}
-			else if(chipSelect == 0x1)//gsm
+			else if(chipSelect == 0x2)//gsm
 			{
 				eeWrAD(0x37dc, 0xA, reg1DB, 0x1DB);
 				eeWrAD(0x37e0, 0xA, reg1DD, 0x1DD);
@@ -208,11 +208,11 @@ void SPIRead_HLevel(u16 addr) {
 		{
 			RXTIA_ADC =0;
 			double tmpBBBW_MHz = 0;
-			if(chipSelect == 0x2)//lte
+			if(chipSelect == 0x1)//lte
 			{
 				tmpBBBW_MHz = 40;
 			}
-			else if(chipSelect == 0x1)//gsm
+			else if(chipSelect == 0x2)//gsm
 			{
 				tmpBBBW_MHz = 20;
 			}
@@ -368,7 +368,7 @@ void SPIRead_HLevel(u16 addr) {
 			reg222 = regVal;
 
 
-			if(chipSelect == 0x2)//lte
+			if(chipSelect == 0x1)//lte
 			{
 				int Status;
 				Status=eeWrAD(0x1560, 0xA, reg207, 0x207);
@@ -400,7 +400,7 @@ void SPIRead_HLevel(u16 addr) {
 				Status=eeWrAD(0x15c8, 0xA, reg221, 0x221);
 				Status=eeWrAD(0x15cc, 0xA, reg222, 0x222);
 			}
-			else if(chipSelect == 0x1)//gsm
+			else if(chipSelect == 0x2)//gsm
 			{
 				int Status;
 				Status=eeWrAD(0x3824, 0xA, reg207, 0x207);
@@ -433,7 +433,6 @@ void SPIRead_HLevel(u16 addr) {
 				Status=eeWrAD(0x3890, 0xA, reg222, 0x222);
 			}
 		}
-
 	}
 }
 
